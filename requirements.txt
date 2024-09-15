@@ -1,7 +1,6 @@
 streamlit
 streamlit-option-menu
 SpeechRecognition
-pyaudio
 pytesseract
 nltk
 pymupdf
