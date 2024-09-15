@@ -1,0 +1,17 @@
+streamlit
+streamlit-option-menu
+SpeechRecognition
+pyaudio
+pytesseract
+nltk
+pymupdf
+gTTS
+numpy
+pandas
+bcrypt
+numpy
+pandas
+pathlib
+datetime
+google.generativeai
+opencv-python-headless
