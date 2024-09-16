@@ -11,6 +11,7 @@ bcrypt
 numpy
 pandas
 pathlib
+easyocr
 datetime
 google.generativeai
 opencv-python-headless
