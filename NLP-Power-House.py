@@ -234,9 +234,6 @@ if st.session_state.logged_in:
         st.session_state.show_success_message = False
         st.rerun() # Reset the flag
     # Main title for the project features
-    #st.title("Science & Technology Project")
-    # Initialize the recognizer
-    #recognizer = sr.Recognizer()
 
     # Function to create a PDF with the chatbot response
     def create_response_pdf(response_text):
