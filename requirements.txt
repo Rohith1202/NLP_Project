@@ -11,9 +11,9 @@ bcrypt
 numpy
 pandas
 pathlib
-easyocr
 datetime
 google.generativeai
 opencv-python-headless
 streamlit-webrtc
 fpdf
+easyocr
