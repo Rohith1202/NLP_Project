@@ -294,7 +294,7 @@ if st.session_state.logged_in:
         st.error("This feature is not yet available on Streamlit Cloud. It will be introduced soon, allowing for more direct browser-based audio recording and microphone access.")
     if selected == 'Text from Image':
         st.title("Text from Image")
-        st.title("OCR Text Detection from Images")
+        st.subheader("OCR Text Detection from Images")
 
         # Function to extract text using EasyOCR
         def extract_text(image):
