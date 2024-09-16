@@ -20,6 +20,7 @@ import google.generativeai as genai
 import cv2
 import numpy as np
 import time
+import easyocr
 user_data_file = "login_data.csv"
 feedback_file = "feedback.csv"
 genai.configure(api_key='AIzaSyDGMkXv8Qqh9Bwf2Xs_M6j1UNTSFJC9wBw')  # Replace with your actual API key
