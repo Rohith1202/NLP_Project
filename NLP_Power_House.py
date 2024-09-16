@@ -289,7 +289,7 @@ if st.session_state.logged_in:
         st.text_area("Recognized Text", value=st.session_state.result_text,height=200)
     if selected == 'Text from Image':
         # Set up Tesseract path if needed (Windows only)
-        pytesseract.pytesseract.tesseract_cmd = 'tesseract.exe'
+        #pytesseract.pytesseract.tesseract_cmd = 'tesseract.exe'
 
         # Create Streamlit interface
         st.title("OCR Text Detection from Images")
