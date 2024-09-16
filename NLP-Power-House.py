@@ -288,43 +288,26 @@ if st.session_state.logged_in:
             else:
                 st.warning("⚠️ Please ask your question.")  # Show a warning if input is empty
     if selected == 'Speech to Text':
-        # Function to listen and recognize speech
-        def listen_and_recognize():
+        # Function to perform speech-to-text conversion
+        def speech_to_text():
+            recognizer = sr.Recognizer()
+
             with sr.Microphone() as source:
-                st.write("Adjusting for ambient noise, please wait...")
-                recognizer.adjust_for_ambient_noise(source, duration=1)  # Adjust for ambient noise
-                st.write("Listening...")
+                st.write("Say something...")
+                audio_data = recognizer.listen(source)
+                st.write("Processing...")
+
                 try:
-                    audio = recognizer.listen(source, timeout=10)  # Listen for speech
-                    text = recognizer.recognize_google(audio)  # Recognize using Google
-                    st.session_state.result_text = text  # Store recognized text in session state
+                    text = recognizer.recognize_google(audio_data)
+                    return text
                 except sr.UnknownValueError:
-                    st.session_state.result_text = "Sorry, I could not understand the audio."
+                    st.error("Google Speech Recognition could not understand audio")
+                    return None
                 except sr.RequestError as e:
-                    st.session_state.result_text = f"Could not request results from Google Speech Recognition service; {e}"
-                except sr.WaitTimeoutError:
-                    st.session_state.result_text = "Listening timed out while waiting for phrase to start."
+                    st.error(f"Could not request results from Google Speech Recognition service; {e}")
+                    return None
 
-        # Streamlit Interface
-        st.title("Speech to Text")
-        st.subheader("Convert Speech into Text")
-
-        # Initialize session state if it doesn't exist
-        if "result_text" not in st.session_state:
-            st.session_state.result_text = ""
-
-        # Create Start Recording button
-        if st.button("Start Recording"):
-            with st.spinner("Listening..."):
-                listen_and_recognize()  # Call the function to listen and recognize
-
-        # Display the recognized text
-        st.text_area("Recognized Text", value=st.session_state.result_text,height=200)
         # Function to generate and download the PDF
-        # Reset button to clear the text area
-        if st.button("Reset"):
-            st.session_state.result_text = ""
-            st.rerun()
         def download_pdf(text):
             pdf = FPDF()
             pdf.add_page()
@@ -353,62 +336,94 @@ if st.session_state.logged_in:
                     file_name=pdf_file,
                     mime="application/pdf"
                 )
-        download_pdf(st.session_state.result_text)
+
+        # Initialize session state for text
+        if 'recognized_text' not in st.session_state:
+            st.session_state['recognized_text'] = ""
+
+        # Streamlit interface
+        st.title("Speech to Text")
+        st.subheader("Convert Speech into Text")
+
+        # Button to start speech recognition
+        if st.button("Start Recording"):
+            recognized_text = speech_to_text()
+            if recognized_text:
+                st.session_state['recognized_text'] = recognized_text
+
+        # Display recognized text in a text area
+        text = st.text_area("Text", st.session_state['recognized_text'], height=300)
+
+        # Button to generate PDF
+        if st.button("Generate PDF"):
+            if text:
+                st.write("Generating PDF...")
+                download_pdf(text)
+
+        # Reset button to clear the text area
+        if st.button("Reset"):
+            st.session_state['recognized_text'] = ""
+            st.rerun()
     if selected == 'Text from Image':
-        # Set up Tesseract path if needed (Windows only)
-        pytesseract.pytesseract.tesseract_cmd = 'tesseract.exe'
+        # Function to extract text using EasyOCR
+        def extract_text(image):
+            reader = easyocr.Reader(['en'])  # Initialize EasyOCR reader
+            result = reader.readtext(np.array(image))  # Convert image to numpy array
+            # Extract only the text part from the result
+            detected_text = [text[1] for text in result]
+            return detected_text
 
-        # Create Streamlit interface
-        st.title("OCR Text Detection from Images")
+        # Function to create a PDF from text with title and subheader
+        def create_pdf_with_title(text):
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_auto_page_break(auto=True, margin=15)
 
-        st.subheader("Upload an image to extract text using OCR.")
+            # Title: OCR Text Detection from Images
+            pdf.set_font("Arial", 'B', 16)
+            pdf.cell(200, 10, txt="OCR Text Detection from Images", ln=True, align='C')
 
-        # File uploader widget
-        uploaded_file = st.file_uploader("Choose an image file", type=["jpg", "jpeg", "png"])
+            # Subheader: Detected Text
+            pdf.set_font("Arial", 'B', 12)
+            pdf.cell(200, 10, txt="Detected Text:", ln=True, align='L')
 
-        if uploaded_file is not None:
-            # Load the image
-            image = Image.open(uploaded_file)
+            # Add text to PDF, wrapping text properly
+            pdf.set_font("Arial", size=12)
+            for line in text.split('\n'):
+                pdf.multi_cell(0, 10, line)
             
+            return pdf.output(dest="S").encode('latin1')  # Return PDF as a binary string
+
+        # Streamlit file uploader
+        uploaded_image = st.file_uploader("Upload an image", type=['jpg', 'png', 'jpeg'])
+
+        if uploaded_image is not None:
             # Display the uploaded image
-            st.image(image, caption="Uploaded Image", use_column_width=True)
-            
-            # Perform OCR
-            text = pytesseract.image_to_string(image)
-            
-            # Display the extracted text
-            st.subheader("Extracted Text")
-            st.text_area("Text", text, height=300)
+            img = Image.open(uploaded_image)
+            st.image(img, caption='Uploaded Image', use_column_width=True)
 
-            def download_pdf(text):
-                pdf = FPDF()
-                pdf.add_page()
+            # Extract and display detected text
+            detected_text = extract_text(img)
 
-                # Title
-                pdf.set_font("Arial", "B", 16)
-                pdf.cell(200, 10, txt="OCR Text Detection from Images", ln=True, align='C')
+            # Check if any text was detected
+            if detected_text:
+                # Join detected text into a single string with new lines between each text block
+                text_output = "\n".join(detected_text)
+                
+                # Display the detected text in a text area
+                st.text_area("Detected Text:", value=text_output, height=300)
+                
+                # Generate PDF with title and subheader, and add download button to download text as a .pdf file
+                pdf_data = create_pdf_with_title(text_output)
+                st.download_button(
+                    label="Download Detected Text as .pdf",
+                    data=pdf_data,  # The binary data to download (PDF)
+                    file_name="detected_text.pdf",  # Filename for the download
+                    mime="application/pdf"  # MIME type for PDF
+                )
+            else:
+                st.write("No text detected.")
 
-                # Subheading
-                pdf.set_font("Arial", "B", 12)
-                pdf.cell(200, 10, txt="Detected Text:", ln=True, align='L')
-
-                # Recognized text
-                pdf.set_font("Arial", "", 12)
-                pdf.multi_cell(0, 10, text)
-
-                # Save PDF
-                pdf_file = "recognized_text.pdf"
-                pdf.output(pdf_file)
-
-                # Provide download link in Streamlit
-                with open(pdf_file, "rb") as file:
-                    st.download_button(
-                        label="Download PDF",
-                        data=file,
-                        file_name=pdf_file,
-                        mime="application/pdf"
-                    )
-            download_pdf(text)
     if selected == 'Text to Speech':
         # Streamlit interface
         st.title("Text to Speech")
@@ -473,7 +488,7 @@ if st.session_state.logged_in:
                     st.warning("The uploaded file is empty!")
     if selected == 'Sentimental Analysis':
         # Download the VADER lexicon if it's not already installed
-        #nltk.download('vader_lexicon')
+        nltk.download('vader_lexicon')
 
         # Initialize the Sentiment Intensity Analyzer
         sia = SentimentIntensityAnalyzer()
