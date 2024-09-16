@@ -21,6 +21,10 @@ import cv2
 import numpy as np
 import time
 import easyocr
+import sounddevice as sd
+import io 
+import wave
+
 user_data_file = "login_data.csv"
 feedback_file = "feedback.csv"
 genai.configure(api_key='AIzaSyDGMkXv8Qqh9Bwf2Xs_M6j1UNTSFJC9wBw')  # Replace with your actual API key
@@ -289,24 +293,47 @@ if st.session_state.logged_in:
             else:
                 st.warning("⚠️ Please ask your question.")  # Show a warning if input is empty
     if selected == 'Speech to Text':
-        # Function to perform speech-to-text conversion
-        def speech_to_text():
-            recognizer = sr.Recognizer()
+        # Function to record audio using sounddevice
+        def record_audio(duration=5, samplerate=44100):
+            st.write("Recording...")
+            audio_data = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=1, dtype='int16')
+            sd.wait()  # Wait until the recording is finished
+            st.write("Recording finished.")
+            return audio_data.flatten()
 
-            with sr.Microphone() as source:
-                st.write("Say something...")
-                audio_data = recognizer.listen(source)
+        # Function to convert numpy array to WAV file-like object
+        def numpy_to_wav(audio_data, samplerate=44100):
+            wav_file = io.BytesIO()
+            with wave.open(wav_file, 'wb') as wf:
+                wf.setnchannels(1)  # Mono
+                wf.setsampwidth(2)  # 16 bits
+                wf.setframerate(samplerate)
+                wf.writeframes(audio_data.tobytes())
+            wav_file.seek(0)
+            return wav_file
+
+        # Function to listen and recognize speech
+        def listen_and_recognize():
+            recognizer = sr.Recognizer()
+            
+            # Record audio for a specified duration (e.g., 5 seconds)
+            audio_data = record_audio(duration=5)
+            
+            # Convert the numpy array to a WAV file-like object
+            wav_file = numpy_to_wav(audio_data)
+
+            # Use the WAV file with speech_recognition
+            with sr.AudioFile(wav_file) as source:
                 st.write("Processing...")
+                audio = recognizer.record(source)  # Read the entire WAV file
 
                 try:
-                    text = recognizer.recognize_google(audio_data)
-                    return text
+                    text = recognizer.recognize_google(audio)  # Recognize using Google
+                    st.session_state.result_text = text  # Store recognized text in session state
                 except sr.UnknownValueError:
-                    st.error("Google Speech Recognition could not understand audio")
-                    return None
+                    st.session_state.result_text = "Sorry, I could not understand the audio."
                 except sr.RequestError as e:
-                    st.error(f"Could not request results from Google Speech Recognition service; {e}")
-                    return None
+                    st.session_state.result_text = f"Could not request results from Google Speech Recognition service; {e}"
 
         # Function to generate and download the PDF
         def download_pdf(text):
@@ -325,7 +352,7 @@ if st.session_state.logged_in:
             pdf.set_font("Arial", "", 12)
             pdf.multi_cell(0, 10, text)
 
-            # Save PDF
+            # Save PDF to a file
             pdf_file = "recognized_text.pdf"
             pdf.output(pdf_file)
 
@@ -338,32 +365,31 @@ if st.session_state.logged_in:
                     mime="application/pdf"
                 )
 
-        # Initialize session state for text
-        if 'recognized_text' not in st.session_state:
-            st.session_state['recognized_text'] = ""
-
-        # Streamlit interface
+        # Streamlit Interface
         st.title("Speech to Text")
         st.subheader("Convert Speech into Text")
 
-        # Button to start speech recognition
+        # Initialize session state if it doesn't exist
+        if "result_text" not in st.session_state:
+            st.session_state.result_text = ""
+
+        # Create Start Recording button
         if st.button("Start Recording"):
-            recognized_text = speech_to_text()
-            if recognized_text:
-                st.session_state['recognized_text'] = recognized_text
+            with st.spinner("Listening..."):
+                listen_and_recognize()  # Call the function to listen and recognize
 
-        # Display recognized text in a text area
-        text = st.text_area("Text", st.session_state['recognized_text'], height=300)
+        # Display the recognized text in a text area
+        st.text_area("Recognized Text", value=st.session_state.result_text, height=200)
 
-        # Button to generate PDF
+        # Button to generate PDF from recognized text
         if st.button("Generate PDF"):
-            if text:
-                st.write("Generating PDF...")
-                download_pdf(text)
-
+            if st.session_state.result_text:
+                download_pdf(st.session_state.result_text)  # Generate and download the PDF
+            else:
+                st.error("Text not Generated !")
         # Reset button to clear the text area
         if st.button("Reset"):
-            st.session_state['recognized_text'] = ""
+            st.session_state.result_text = ""
             st.rerun()
     if selected == 'Text from Image':
         # Function to extract text using EasyOCR
