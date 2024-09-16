@@ -291,7 +291,7 @@ if st.session_state.logged_in:
         # Function to listen and recognize speech
         st.title("Sppech to Text")
         st.subheader("Convert Speech into Text")
-        st.write("This feature is not yet available on Streamlit Cloud. It will be introduced soon, allowing for more direct browser-based audio recording and microphone access.")
+        st.error("This feature is not yet available on Streamlit Cloud. It will be introduced soon, allowing for more direct browser-based audio recording and microphone access.")
     if selected == 'Text from Image':
         # Function to extract text using EasyOCR
         def extract_text(image):
