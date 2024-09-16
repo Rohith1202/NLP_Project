@@ -15,5 +15,4 @@ datetime
 google.generativeai
 opencv-python-headless
 streamlit-webrtc
-pyaudio
 fpdf
