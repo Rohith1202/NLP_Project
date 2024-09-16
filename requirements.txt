@@ -17,3 +17,4 @@ opencv-python-headless
 streamlit-webrtc
 fpdf
 easyocr
+pillow
