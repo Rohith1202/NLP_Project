@@ -18,3 +18,4 @@ streamlit-webrtc
 fpdf
 easyocr
 pillow
+sounddevice
