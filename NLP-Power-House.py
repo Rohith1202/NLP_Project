@@ -289,7 +289,7 @@ if st.session_state.logged_in:
                 st.warning("⚠️ Please ask your question.")  # Show a warning if input is empty
     if selected == 'Speech to Text':
         # Function to listen and recognize speech
-        St.title("Sppech to Text")
+        st.title("Sppech to Text")
         st.subheader("Convert Speech into Text")
         st.write("This feature is not yet available on Streamlit Cloud. It will be introduced soon, allowing for more direct browser-based audio recording and microphone access.")
     if selected == 'Text from Image':
