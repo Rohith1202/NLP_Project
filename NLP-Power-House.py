@@ -20,8 +20,8 @@ import google.generativeai as genai
 import cv2
 import numpy as np
 import time
-user_data_file = "C:\\Users\\HP\\Downloads\\CSP_Medical-Plant-Detection-Using-Deep-Learning\\login_data.csv"
-feedback_file = "C:\\Users\\HP\\Downloads\\CSP_Medical-Plant-Detection-Using-Deep-Learning\\feedback.csv"
+user_data_file = "login_data.csv"
+feedback_file = "feedback.csv"
 genai.configure(api_key='AIzaSyDGMkXv8Qqh9Bwf2Xs_M6j1UNTSFJC9wBw')  # Replace with your actual API key
 # Ensure necessary files exist
 def ensure_user_data():
@@ -120,7 +120,7 @@ if not st.session_state.logged_in:
         st.markdown(login_bg_img, unsafe_allow_html=True)
 
     # Load the background image for the login interface
-    with open(r"C:\Users\HP\Downloads\digital-art.jpg", "rb") as image_file:  # Change this path to your image
+    with open("digital-art.jpg", "rb") as image_file:  # Change this path to your image
         encoded_image = base64.b64encode(image_file.read()).decode()
 
     # Set the background for the login interface
@@ -218,7 +218,7 @@ if st.session_state.logged_in:
         st.markdown(page_bg_img, unsafe_allow_html=True)
 
     # Load the background image for the interface
-    with open(r"C:\Users\HP\Downloads\dark-abstract.jpg", "rb") as image_file:  # Change this path to your image
+    with open("dark-abstract.jpg", "rb") as image_file:  # Change this path to your image
         encoded_image = base64.b64encode(image_file.read()).decode()
 
     # Set the background
@@ -356,7 +356,7 @@ if st.session_state.logged_in:
         download_pdf(st.session_state.result_text)
     if selected == 'Text from Image':
         # Set up Tesseract path if needed (Windows only)
-        pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
+        pytesseract.pytesseract.tesseract_cmd = 'tesseract.exe'
 
         # Create Streamlit interface
         st.title("OCR Text Detection from Images")
