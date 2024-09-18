@@ -102,6 +102,8 @@ st.title("Real Time AI-Driven NLP Powerhouse")
 # Initialize session state for login
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
+if 'username' not in st.session_state:
+    st.session_state.username = ""  # Initialize username as an empty string
 
 # Display logout message if logged out
 if 'logout_message' in st.session_state:
@@ -201,6 +203,7 @@ if not st.session_state.logged_in:
             if st.button("Login"):
                 if validate_login(username, password):
                     st.session_state.logged_in = True
+                    st.session_state.username = username  # Store the username in session state
                     st.session_state.show_success_message = True  # Flag to show success message
                     st.rerun()
                 else:
@@ -208,6 +211,7 @@ if not st.session_state.logged_in:
 # Main project interface
 if st.session_state.logged_in:
     # Set the background image for the Streamlit interface
+    st.markdown(f"## Welcome, {st.session_state.username}!", unsafe_allow_html=True)
     def set_background(image_file):
         page_bg_img = f'''
         <style>
