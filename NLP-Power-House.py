@@ -203,8 +203,8 @@ if not st.session_state.logged_in:
             if st.button("Login"):
                 if validate_login(username, password):
                     st.session_state.logged_in = True
-                    st.session_state.username = username  # Store the username in session state
                     st.session_state.show_success_message = True  # Flag to show success message
+                    st.session_state.username = username  # Store the username in session state
                     st.rerun()
                 else:
                     st.error("Invalid username or password")
